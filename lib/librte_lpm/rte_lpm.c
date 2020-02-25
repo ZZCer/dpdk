@@ -23,6 +23,7 @@
 #include <rte_spinlock.h>
 
 #include "rte_lpm.h"
+#include "fpp.h"
 
 TAILQ_HEAD(rte_lpm_list, rte_tailq_entry);
 

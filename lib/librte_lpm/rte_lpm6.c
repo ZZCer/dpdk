@@ -1094,6 +1094,66 @@ MAP_STATIC_SYMBOL(int rte_lpm6_lookup_bulk_func(const struct rte_lpm6 *lpm,
 				int32_t *next_hops, unsigned int n),
 		rte_lpm6_lookup_bulk_func_v1705);
 
+/* g-opt optimized */
+void rte_lpm6_lookup_bulk_opt_func(const struct rte_lpm6 *lpm,
+                            uint8_t ips[][RTE_LPM6_IPV6_ADDR_SIZE],
+                            int16_t *next_hops, unsigned n)
+{
+	const struct rte_lpm6_tbl_entry *tbl[BATCH_SIZE];
+	const struct rte_lpm6_tbl_entry *tbl_next[BATCH_SIZE];
+	uint32_t tbl24_index[BATCH_SIZE];
+	uint8_t next_hop[BATCH_SIZE];
+	uint8_t first_byte[BATCH_SIZE];
+	int status[BATCH_SIZE];
+
+	/* DEBUG: Check user input arguments. */
+	if ((lpm == NULL) || (ips == NULL) || (next_hops == NULL))
+		return -EINVAL;
+
+	int I = 0;			// batch index
+	void *batch_rips[BATCH_SIZE];		// goto targets
+	int iMask = 0;		// No packet is done yet
+
+	int temp_index;
+	for(temp_index = 0; temp_index < BATCH_SIZE; temp_index ++) {
+		batch_rips[temp_index] = &&fpp_start;
+	}
+
+fpp_start:
+
+        first_byte[I] = LOOKUP_FIRST_BYTE;
+        tbl24_index[I] = (ips[I][0] << BYTES2_SIZE) |
+        (ips[I][1] << BYTE_SIZE) | ips[I][2];
+        
+        /* Calculate pointer to the first entry to be inspected */
+        tbl[I] = &lpm->tbl24[tbl24_index[I]];
+        
+        do {
+            FPP_PSS(tbl[I], fpp_label_1, n);
+fpp_label_1:
+
+            /* Continue inspecting following levels until success or failure */
+            status[I] = lookup_step(lpm, tbl[I], &tbl_next[I], ips[I], first_byte[I]++,
+                                 &next_hop[I]);
+            tbl[I] = tbl_next[I];
+        } while (status[I] == 1);
+        
+        if (status[I] < 0)
+            next_hops[I] = -1;
+        else
+            next_hops[I] = next_hop[I];
+       
+fpp_end:
+    batch_rips[I] = &&fpp_end;
+    iMask = FPP_SET(iMask, I); 
+    if(iMask == (1 << n) - 1) {
+        return 0;
+    }
+    I = (I + 1) < n ? I + 1 : 0;
+    goto *batch_rips[I];
+
+}
+
 /*
  * Look for a rule in the high-level rules table
  */

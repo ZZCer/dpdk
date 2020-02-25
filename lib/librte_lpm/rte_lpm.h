@@ -429,6 +429,65 @@ rte_lpm_lookup_bulk_func(const struct rte_lpm *lpm, const uint32_t *ips,
 	return 0;
 }
 
+/* g-opt auto optimized */
+static inline int
+rte_lpm_lookup_bulk_opt_func(const struct rte_lpm *lpm, const uint32_t *ips,
+		uint32_t *next_hops, const unsigned n)
+{
+	unsigned i[BATCH_SIZE];
+	unsigned tbl24_indexes[n][BATCH_SIZE];
+	const uint32_t *ptbl[BATCH_SIZE];
+	unsigned tbl8_index[BATCH_SIZE];
+
+	int I = 0;			// batch index
+	void *batch_rips[BATCH_SIZE];		// goto targets
+	int iMask = 0;		// No packet is done yet
+
+	int temp_index;
+	for(temp_index = 0; temp_index < BATCH_SIZE; temp_index ++) {
+		batch_rips[temp_index] = &&fpp_start;
+	}
+
+fpp_start:
+
+	/* DEBUG: Check user input arguments. */
+	RTE_LPM_RETURN_IF_TRUE(((lpm == NULL) || (ips == NULL) ||
+			(next_hops == NULL)), -EINVAL);
+
+	for (i[I] = 0; i[I] < n; i[I]++) {
+		tbl24_indexes[i[I]] = ips[i[I]] >> 8;
+	}
+
+	for (i[I] = 0; i[I] < n; i[I]++) {
+		/* Simply copy tbl24 entry to output */
+		ptbl[I] = (const uint32_t *)&lpm->tbl24[tbl24_indexes[i[I]]];
+		next_hops[i[I]] = *ptbl[I];
+
+		/* Overwrite output with tbl8 entry if needed */
+		if (unlikely((next_hops[i[I]] & RTE_LPM_VALID_EXT_ENTRY_BITMASK) ==
+				RTE_LPM_VALID_EXT_ENTRY_BITMASK)) {
+
+			tbl8_index[I] = (uint8_t)ips[i[I]] +
+					(((uint32_t)next_hops[i[I]] & 0x00FFFFFF) *
+					 RTE_LPM_TBL8_GROUP_NUM_ENTRIES);
+
+			ptbl[I] = (const uint32_t *)&lpm->tbl8[tbl8_index[I]];
+			next_hops[i[I]] = *ptbl[I];
+		}
+	}
+	return 0;
+
+fpp_end:
+	batch_rips[I] = &&fpp_end;
+	iMask = FPP_SET(iMask, I); 
+	if(iMask == (1 << nb_pkts) - 1) {
+		return;
+	}
+	I = (I + 1) < nb_pkts ? I + 1 : 0;
+	goto *batch_rips[I];
+
+}
+
 /* Mask four results. */
 #define	 RTE_LPM_MASKX4_RES	UINT64_C(0x00ffffff00ffffff)
 
