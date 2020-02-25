@@ -218,7 +218,10 @@ int
 rte_lpm6_lookup_bulk_func_v1705(const struct rte_lpm6 *lpm,
 		uint8_t ips[][RTE_LPM6_IPV6_ADDR_SIZE],
 		int32_t *next_hops, unsigned int n);
-
+int
+rte_lpm6_lookup_bulk_opt_func(const struct rte_lpm6 *lpm,
+                            uint8_t ips[][RTE_LPM6_IPV6_ADDR_SIZE],
+                            int16_t *next_hops, unsigned n);
 #ifdef __cplusplus
 }
 #endif

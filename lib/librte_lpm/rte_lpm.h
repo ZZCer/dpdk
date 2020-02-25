@@ -434,6 +434,7 @@ static inline int
 rte_lpm_lookup_bulk_opt_func(const struct rte_lpm *lpm, const uint32_t *ips,
 		uint32_t *next_hops, const unsigned n)
 {
+	// TODO: Batch size
 	unsigned i[BATCH_SIZE];
 	unsigned tbl24_indexes[n][BATCH_SIZE];
 	const uint32_t *ptbl[BATCH_SIZE];

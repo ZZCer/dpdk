@@ -1106,6 +1106,7 @@ void rte_lpm6_lookup_bulk_opt_func(const struct rte_lpm6 *lpm,
 	uint8_t first_byte[BATCH_SIZE];
 	int status[BATCH_SIZE];
 
+	// TODO: Batch size
 	/* DEBUG: Check user input arguments. */
 	if ((lpm == NULL) || (ips == NULL) || (next_hops == NULL))
 		return -EINVAL;
