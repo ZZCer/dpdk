@@ -456,21 +456,21 @@ fpp_start:
 	    RTE_LPM_RETURN_IF_TRUE(((lpm == NULL) || (ips == NULL) ||
 			(next_hops == NULL)), -EINVAL);
 
-	    tbl24_index[I] = ips[i] >> 8;
+	    tbl24_index[I] = ips[I] >> 8;
 
         FPP_PSS(&lpm->tbl24[tbl24_index[I]], fpp_label_1);
 fpp_label_1:
 
         /* Simply copy tbl24 entry to output */
 	    ptbl[I] = (const uint32_t *)&lpm->tbl24[tbl24_index[I]];
-	    next_hops[i] = *ptbl[I];
+	    next_hops[I] = *ptbl[I];
 
 	    /* Overwrite output with tbl8 entry if needed */
-	    if (unlikely((next_hops[i] & RTE_LPM_VALID_EXT_ENTRY_BITMASK) ==
+	    if (unlikely((next_hops[I] & RTE_LPM_VALID_EXT_ENTRY_BITMASK) ==
 		    RTE_LPM_VALID_EXT_ENTRY_BITMASK)) {
 
-		    tbl8_index[I] = (uint8_t)ips[i] +
-				(((uint32_t)next_hops[i] & 0x00FFFFFF) *
+		    tbl8_index[I] = (uint8_t)ips[I] +
+				(((uint32_t)next_hops[I] & 0x00FFFFFF) *
 				 RTE_LPM_TBL8_GROUP_NUM_ENTRIES);
 
 		    ptbl[I] = (const uint32_t *)&lpm->tbl8[tbl8_index[I]];
