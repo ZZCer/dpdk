@@ -435,6 +435,8 @@ rte_lpm_lookup_bulk_opt_func(const struct rte_lpm *lpm, const uint32_t *ips,
 		uint32_t *next_hops, const unsigned n)
 {
 	// TODO: Batch size
+	#define BATCH_SIZE 32
+
 	unsigned i[BATCH_SIZE];
 	unsigned tbl24_indexes[n][BATCH_SIZE];
 	const uint32_t *ptbl[BATCH_SIZE];
@@ -482,7 +484,7 @@ fpp_end:
 	batch_rips[I] = &&fpp_end;
 	iMask = FPP_SET(iMask, I); 
 	if(iMask == (1 << nb_pkts) - 1) {
-		return;
+		return 0;
 	}
 	I = (I + 1) < nb_pkts ? I + 1 : 0;
 	goto *batch_rips[I];
