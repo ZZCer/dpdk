@@ -26,6 +26,7 @@
 #include <rte_jhash.h>
 
 #include "rte_lpm6.h"
+#include "fpp.h"
 
 #define RTE_LPM6_TBL24_NUM_ENTRIES        (1 << 24)
 #define RTE_LPM6_TBL8_GROUP_NUM_ENTRIES         256

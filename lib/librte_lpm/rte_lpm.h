@@ -21,6 +21,7 @@
 #include <rte_common.h>
 #include <rte_vect.h>
 #include <rte_compat.h>
+#include "fpp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -436,9 +437,7 @@ rte_lpm_lookup_bulk_opt_func(const struct rte_lpm *lpm, const uint32_t *ips,
 {
 	// TODO: Batch size
 	#define BATCH_SIZE 32
-
-	unsigned i[BATCH_SIZE];
-	unsigned tbl24_indexes[n][BATCH_SIZE];
+	unsigned tbl24_index[BATCH_SIZE];
 	const uint32_t *ptbl[BATCH_SIZE];
 	unsigned tbl8_index[BATCH_SIZE];
 
@@ -453,31 +452,31 @@ rte_lpm_lookup_bulk_opt_func(const struct rte_lpm *lpm, const uint32_t *ips,
 
 fpp_start:
 
-	/* DEBUG: Check user input arguments. */
-	RTE_LPM_RETURN_IF_TRUE(((lpm == NULL) || (ips == NULL) ||
+	    /* DEBUG: Check user input arguments. */
+	    RTE_LPM_RETURN_IF_TRUE(((lpm == NULL) || (ips == NULL) ||
 			(next_hops == NULL)), -EINVAL);
 
-	for (i[I] = 0; i[I] < n; i[I]++) {
-		tbl24_indexes[i[I]] = ips[i[I]] >> 8;
-	}
+	    tbl24_index[I] = ips[i] >> 8;
 
-	for (i[I] = 0; i[I] < n; i[I]++) {
-		/* Simply copy tbl24 entry to output */
-		ptbl[I] = (const uint32_t *)&lpm->tbl24[tbl24_indexes[i[I]]];
-		next_hops[i[I]] = *ptbl[I];
+        FPP_PSS(&lpm->tbl24[tbl24_index[I]], fpp_label_1);
+fpp_label_1:
 
-		/* Overwrite output with tbl8 entry if needed */
-		if (unlikely((next_hops[i[I]] & RTE_LPM_VALID_EXT_ENTRY_BITMASK) ==
-				RTE_LPM_VALID_EXT_ENTRY_BITMASK)) {
+        /* Simply copy tbl24 entry to output */
+	    ptbl[I] = (const uint32_t *)&lpm->tbl24[tbl24_index[I]];
+	    next_hops[i] = *ptbl[I];
 
-			tbl8_index[I] = (uint8_t)ips[i[I]] +
-					(((uint32_t)next_hops[i[I]] & 0x00FFFFFF) *
-					 RTE_LPM_TBL8_GROUP_NUM_ENTRIES);
+	    /* Overwrite output with tbl8 entry if needed */
+	    if (unlikely((next_hops[i] & RTE_LPM_VALID_EXT_ENTRY_BITMASK) ==
+		    RTE_LPM_VALID_EXT_ENTRY_BITMASK)) {
 
-			ptbl[I] = (const uint32_t *)&lpm->tbl8[tbl8_index[I]];
-			next_hops[i[I]] = *ptbl[I];
-		}
-	}
+		    tbl8_index[I] = (uint8_t)ips[i] +
+				(((uint32_t)next_hops[i] & 0x00FFFFFF) *
+				 RTE_LPM_TBL8_GROUP_NUM_ENTRIES);
+
+		    ptbl[I] = (const uint32_t *)&lpm->tbl8[tbl8_index[I]];
+		    next_hops[i] = *ptbl[I];
+	    }
+	
 	return 0;
 
 fpp_end:
