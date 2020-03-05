@@ -18,7 +18,7 @@ LIBABIVER := 2
 SRCS-$(CONFIG_RTE_LIBRTE_LPM) := rte_lpm.c rte_lpm6.c
 
 # install this header file
-SYMLINK-$(CONFIG_RTE_LIBRTE_LPM)-include := rte_lpm.h rte_lpm6.h
+SYMLINK-$(CONFIG_RTE_LIBRTE_LPM)-include := rte_lpm.h rte_lpm6.h fpp.h
 
 ifneq ($(filter y,$(CONFIG_RTE_ARCH_ARM) $(CONFIG_RTE_ARCH_ARM64)),)
 SYMLINK-$(CONFIG_RTE_LIBRTE_LPM)-include += rte_lpm_neon.h

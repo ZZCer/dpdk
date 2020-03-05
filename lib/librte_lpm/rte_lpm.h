@@ -456,7 +456,7 @@ fpp_start:
 
 	    tbl24_index[I] = ips[I] >> 8;
 
-        FPP_PSS(&lpm->tbl24[tbl24_index[I]], fpp_label_1, n);
+        FPP_PSS(&lpm->tbl24[tbl24_index[I]], fpp_label_1, (int) n);
 fpp_label_1:
 
         /* Simply copy tbl24 entry to output */
@@ -472,7 +472,7 @@ fpp_label_1:
 				 RTE_LPM_TBL8_GROUP_NUM_ENTRIES);
 
 		    ptbl[I] = (const uint32_t *)&lpm->tbl8[tbl8_index[I]];
-		    next_hops[i] = *ptbl[I];
+		    next_hops[I] = *ptbl[I];
 	    }
 	
 	return 0;
@@ -483,7 +483,7 @@ fpp_end:
 	if(iMask == (1 << n) - 1) {
 		return 0;
 	}
-	I = (I + 1) < n ? I + 1 : 0;
+	I = (I + 1) < (int)n ? I + 1 : 0;
 	goto *batch_rips[I];
 
 }

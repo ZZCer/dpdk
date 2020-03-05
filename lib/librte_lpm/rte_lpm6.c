@@ -1098,18 +1098,18 @@ MAP_STATIC_SYMBOL(int rte_lpm6_lookup_bulk_func(const struct rte_lpm6 *lpm,
 /* g-opt optimized */
 void rte_lpm6_lookup_bulk_opt_func(const struct rte_lpm6 *lpm,
                             uint8_t ips[][RTE_LPM6_IPV6_ADDR_SIZE],
-                            int16_t *next_hops, unsigned n)
+                            int32_t *next_hops, unsigned n)
 {
 	const struct rte_lpm6_tbl_entry *tbl[BATCH_SIZE];
 	const struct rte_lpm6_tbl_entry *tbl_next[BATCH_SIZE];
 	uint32_t tbl24_index[BATCH_SIZE];
-	uint8_t next_hop[BATCH_SIZE];
+	uint32_t next_hop[BATCH_SIZE];
 	uint8_t first_byte[BATCH_SIZE];
 	int status[BATCH_SIZE];
 
 	/* DEBUG: Check user input arguments. */
-	if ((lpm == NULL) || (ips == NULL) || (next_hops == NULL))
-		return -EINVAL;
+	// if ((lpm == NULL) || (ips == NULL) || (next_hops == NULL))
+	// 	return -EINVAL;
 
 	int I = 0;			// batch index
 	void *batch_rips[BATCH_SIZE];		// goto targets
@@ -1130,12 +1130,12 @@ fpp_start:
         tbl[I] = &lpm->tbl24[tbl24_index[I]];
         
         do {
-            FPP_PSS(tbl[I], fpp_label_1, n);
+            FPP_PSS(tbl[I], fpp_label_1, (int) n);
 fpp_label_1:
 
             /* Continue inspecting following levels until success or failure */
             status[I] = lookup_step(lpm, tbl[I], &tbl_next[I], ips[I], first_byte[I]++,
-                                 &next_hop[I]);
+                                 next_hop + I);
             tbl[I] = tbl_next[I];
         } while (status[I] == 1);
         
@@ -1148,9 +1148,9 @@ fpp_end:
     batch_rips[I] = &&fpp_end;
     iMask = FPP_SET(iMask, I); 
     if(iMask == (1 << n) - 1) {
-        return 0;
+        return;
     }
-    I = (I + 1) < n ? I + 1 : 0;
+    I = (I + 1) < (int)n ? I + 1 : 0;
     goto *batch_rips[I];
 
 }
