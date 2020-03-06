@@ -13,9 +13,8 @@
 CC        = $(CROSS)clang
 KERNELCC  = $(CROSS)gcc
 CPP       = $(CROSS)cpp
-# for now, we don't use as but nasm.
-# AS      = $(CROSS)as
-AS        = nasm
+AS      = $(CROSS)as
+# AS        = nasm
 AR        = $(CROSS)ar
 LD        = $(CROSS)ld
 OBJCOPY   = $(CROSS)objcopy

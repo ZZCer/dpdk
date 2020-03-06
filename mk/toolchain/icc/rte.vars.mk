@@ -16,7 +16,8 @@
 CC        = icc
 KERNELCC  = gcc
 CPP       = cpp
-AS        = nasm
+# AS        = nasm
+AS		  = as
 AR        = ar
 LD        = ld
 OBJCOPY   = objcopy
