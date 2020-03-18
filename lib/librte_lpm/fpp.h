@@ -13,5 +13,6 @@ do {\
 
 #define BATCH_SIZE 8
 #define BATCH_SIZE_ 7
+#define MAX_BATCH_SIZE 32
 
 #define foreach(i, n) for(i = 0; i < n; i ++)
